@@ -1,0 +1,61 @@
+.data
+arr: .word  104,101,108,108,111 #hello in AscII
+output: .string "  output is"
+space: .string "  " 
+
+len: .word 5
+.text
+main:
+    la s1 arr
+    lw s2, len
+    li s5,4
+    li s7,1
+    li s8,2
+    mul s8,s2,s5 #max end address gap
+    sub,s8,s8,s5 #max end item address gap
+    jal ra, reverse
+    jal ra, out
+    ecall
+    
+reverse: 
+   div s9,s8,s2   #size/2
+   sub s9,s9,s7   #size/2-1
+
+    loop1:
+        
+        addi t0,t0,1   #i++
+        sub t3,t0,s7   #i-1
+        add t4,t3,t3   #2(i-1)
+        mul t4,t4,s5   #2(i-1)*4(bytes)
+        sub t6,s8,t4   #gap for exchange item
+        lw a0,0(s1)    
+        add t2,a0,x0   #temp=x[i]
+        add,s1,t6,s1   #x[max-i]
+        lw a0,0(s1)    #a0=x[max-i]
+        sub s1,s1,t6   #x[i]
+        sw a0,0(s1)    #x[i]=a0
+        add s1,s1,t6   #x[max-i]
+        add a0,t2,x0   
+        sw a0,0(s1)    #x[max-i]=temp
+        sub s1,s1,t6   #x[i]
+        add s1,s1,s5   #x[i+1]
+        
+        blt t0,s9,loop1 #if i<(size/2-1) jump to loop
+        
+out:
+    la a0 ,output
+    li a7,4
+    mul s10,t0,s5      #get the final address gap of s1 in loop1
+    sub s1,s1,s10      #minus offset
+    ecall
+    loop2:
+        addi t1,t1,1   #i++
+        lw a0, (0)s1   #a0=x[i]
+        add s1,s1,s5   #x[i+1]
+        li a7,1
+        ecall
+        la a0,space
+        li a7,4
+        ecall
+    
+        blt t1,s2,loop2 # if i<len go to loop2
